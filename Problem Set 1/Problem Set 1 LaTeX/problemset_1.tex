@@ -175,9 +175,9 @@ H(S | X_j) - H(S)= B(\tfrac{p}{n+p}) - B(\tfrac{p_k}{p_k+n_k}) = 0
 \section{k-Nearest Neighbor}
 \begin{enumerate}
 \item
-\solution{Setting a value of $k=0$ minimizes the training set error, achieving a set error of 0. This is because the closest training set data point to a given point is itself, causing it to achieve perfect accuracy. This training set is not a reasonable estimate of test set error, as this value of $k$ essentially causes the algorithm to ``memorize'' the training set. \\
-Achieving an error of 0 is impossible if the test set is distinct from the training set, as the program would not have ``learned'' anything from the test set due to overfitting. \\
-Consequently, given a distinct testing set from the training set, the error would be very high with a value of $k=0$.
+\solution{Setting a value of $k=1$ minimizes the training set error, achieving a set error of 0. This is because the closest training set data point to a given point is itself, causing it to achieve perfect accuracy. This training set is not a reasonable estimate of test set error, as this value of $k$ essentially causes the algorithm to ``memorize'' the training set. \\
+Achieving an error of 0 is impossible if the test set is distinct from the training set, as the program would not have ``learned'' anything from the test set due to overfitting. It also makes it very susceptible to noise. \\
+Consequently, given a distinct testing set from the training set, the error would be very high with a value of $k=1$.
 }
 \vspace{1cm}
 
@@ -188,8 +188,8 @@ This leads to an error rate of $\tfrac{2}{7}$. Setting $k=5$ is a better measure
 \vspace{1cm}
 
 \item
-\solution{The LOOCV error for $k=1$ is $\frac{5}{7}$, while the LOOCV error for $k=14$ is 1. \\
-The disadvantage of using a large $k$ is that the predicted value for a given data point depends on the remaining data points; for example, in this instance, setting $k=14$ will cause an error rate of 100\% as there will be 6 remaining data points of the selected point and 7 remaining data points for the other selected point.\\
+\solution{The LOOCV error for $k=1$ is $\frac{5}{7}$, while the LOOCV error for $k=13$ is 1. \\
+The disadvantage of using a large $k$ is that the predicted value for a given data point depends on the remaining data points; for example, in this instance, setting $k=13$ will cause an error rate of 100\% as there will be 6 remaining data points of the selected point and 7 remaining data points for the other selected point.\\
  The disadvantage of using too small a data point is that the classification of a given point will be based solely on the nearest data value. This will cause issues in patterns such as a checkerboard, where related points lie along diagonals but the closest and unrelated points lie along the rows and columns; consequently, this will cause high amounts of error.
 }
 \end{enumerate}
