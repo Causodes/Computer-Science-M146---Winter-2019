@@ -1,0 +1,108 @@
+\documentclass[11pt]{article}
+
+\newcommand{\cnum}{CS M146}
+\newcommand{\ced}{Winter 2019}
+\newcommand{\ctitle}[3]{\title{\vspace{-0.5in}\cnum, \ced\\Problem Set #1: #2\\Due #3}}
+\usepackage{enumitem}
+\newcommand{\solution}[1]{{{\color{blue}{\bf Solution:} {#1}}}}
+\usepackage[usenames,dvipsnames,svgnames,table,hyperref]{xcolor}
+\usepackage{graphicx}
+\usepackage[tbtags]{amsmath}
+\usepackage[hang, small,labelfont=bf,up]{caption} % Custom captions under/above floats in tables or figures
+\usepackage{booktabs} % Horizontal rules in tables
+
+
+\renewcommand*{\theenumi}{\alph{enumi}}
+\renewcommand*\labelenumi{(\theenumi)}
+\renewcommand*{\theenumii}{\roman{enumii}}
+\renewcommand*\labelenumii{\theenumii.}
+
+
+\begin{document}
+\ctitle{5}{Boosting, Unsupervised Learning}{March 16, 2019}
+\author{Tian Ye \\ \small{Collaborators: Derek Chu, Austin Guo}}
+\maketitle
+
+\newpage
+
+\section{AdaBoost}
+\begin{enumerate}
+\item 
+\solution{
+\begin{align}
+(h^*_t(x), \beta^*_t) &= \text{argmin}(e^{\beta_t}-e^{-\beta_t})\sum_n w_t(n)\lVert[y_n \neq h_t(x_n)] \\
+\Rightarrow 0 &= (e^{\beta_t}-e^{-\beta_t})\epsilon_t - e^{-\beta_t^{\epsilon_t}} \\
+0 &= \epsilon_te^{\beta_t}+\epsilon_te^{-\beta_t}-e^{-\beta_t^{\epsilon_t}} \\
+\epsilon_te^{\beta_t} &= e^{-\beta_t}(1-\epsilon_t) \\
+\beta_t + \ln \epsilon_t &= -\beta_t + \ln (1-\epsilon_t) \\
+2\beta_t &= \ln(1-\epsilon_t)-\ln\epsilon_t \\
+\beta_t &= \frac{\ln(\frac{1-\epsilon_t}{\epsilon_t})}{2}
+\end{align}
+}
+\vspace{1cm}
+
+\item
+\solution{
+$\beta_1 = \infty$ since this hard-margin linear SVM already classifies everything correctly as the training set is linearly seperable. Consequently we want $\beta_1$ to have all the weight as it already correctly classifies everything. Hence, we set it equal to infinity. Mathematically, $\epsilon_t = 0$ since nothing is ever misclassified; consequently this means that $\beta_t = \frac{\ln(\frac{1}{0})}{2} \Rightarrow \infty$.
+}
+\end{enumerate}
+\newpage
+\section{K-means for single dimensional data}
+\begin{enumerate}
+\item
+\solution{
+Let $\mu_k$ represent teh kth cluster center. Using this notation, we are able to state that the optimal clustering is: $\mu_1 = 1.5 \mu_2 = 5, \mu_3 = 7$.
+
+Here, $x_1$ and $x_2$ are in the first cluster, $x_3$ is in the second cluster, and $x_4$ is in the third cluster.
+
+The cooresponding value of the objective is $0.5^2 + 0.5^2 + 0^2 + 0^2 = 0.5$
+}
+
+\item
+\solution{
+If our initial cluster centers are $\mu_1 = 1, \mu_2 = 2, \mu_3 = 6$ and we use the same classification rules as in the previous section, we see that when we recalculate the means for Lloyd's algorithm, we get the same cluster centers and thus achieve convergence. Thus, this initial cluster assignment will not be improved because we have reached convergence on a local minimum. However, these assignments are suboptimal since the corresponding value of the objective is now $0^2 + 0^2 + 1^2 + 1^2 = 2$. Thus, the suboptimal initial clster assignment resulted in a convergence and getting a higher value for the objective, meaning that we did not converge to the local minimum.
+}
+\end{enumerate}
+
+\section{Gaussian Mixture Models}
+\begin{enumerate}
+\item
+\solution{
+\begin{align}
+\ell(\theta)  &=\sum_k\sum_n\gamma_{nk}\log\omega_k + \sum_k\{\sum_n\gamma_{nk}\log N (x_n | \mu_k, \Sigma_k\} \\
+\ell(\theta)  &=\sum_k\sum_n\gamma_{nk}\log\omega_k + \sum_k\sum_n\gamma_{nk}\log(\tfrac{1}{\sqrt{2\pi |\Sigma_k|}}e^{-\frac{1}{2}(x_n-\mu_k)^T\Sigma_k^{-1}(x_n-\mu_k)} \\
+\ell(\theta)  &=\sum_k\sum_n\gamma_{nk}\log\omega_k + \sum_k\sum_n\gamma_{nk}\log(\tfrac{1}{\sqrt{2\pi |\Sigma_k|}}-\tfrac{1}{2}(x_n-\mu_i)^T\Sigma_k^{-1}(x_n-\mu_k)) \\
+\nabla\mu_k\ell(\theta) &= \sum_n\gamma_{nk}-\tfrac{1}{2}\Sigma_k^{-1}(x_n-\mu_k)(2)(-1) \\
+\nabla\mu_k\ell(\theta) &= \sum_n\gamma_{nk}\Sigma_k^{-1}(x_n-\mu_k)
+\end{align}
+}
+\vspace{1cm}
+
+\item
+\solution{
+\begin{align}
+0 &= \sum_n\gamma_{nk}(x_n-\mu_k) \\
+\sum_n\gamma_{nk}x_n &= \sum_n\gamma_{nk}\mu_k \\
+\mu_k &= \frac{\sum_n\gamma_{nk}x_n}{\sum_n\gamma_{nk}}
+\end{align}
+}
+\vspace{1cm}
+
+\item
+\solution{
+$x = \{5, 15, 25, 30, 40\}$ \\
+$\omega_k = \frac{\sum_n\gamma_{nk}x_n}{\sum_k\sum_n\gamma_{nk}}$, $\mu_k = \frac{1}{\sum_n\gamma_{nk}}\sum_n\gamma_{nk}x_n$
+Therefore,
+\begin{align}
+\omega_1 &= \frac{(0.2 + 0.2+0.8+0.9+0.9)}{(0.2+0.2+0.8+0.9+0.9+0.8+0.8+0.2+0.1+0.1)} \\
+\omega_1 &= \tfrac{3}{5} \\
+\omega_2 &= \frac{(0.8+0.8+0.2+0.1+0.1)}{5} \\
+\omega_2 &= \tfrac{2}{5} \\
+\mu_1 &= \tfrac{1}{3}(0.2(5)+0.2(15)+0.8(25)+0.9(30)+0.9(40)) \\
+\mu_1 &= 29 \\
+\mu_2 &= \tfrac{1}{2}(0.8(5)+0.8(15)+0.2(25)+0.1(30)+0.1(40)) \\
+\mu_2 &= 14
+\end{align}
+}
+\end{enumerate}
+\end{document}

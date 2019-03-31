@@ -1,0 +1,351 @@
+\documentclass[11pt]{article}
+
+\newcommand{\cnum}{CS M146}
+\newcommand{\ced}{Winter 2019}
+\newcommand{\ctitle}[3]{\title{\vspace{-0.5in}\cnum, \ced\\Problem Set #1: #2\\Due #3}}
+\usepackage{enumitem}
+\newcommand{\solution}[1]{{{\color{blue}{\bf Solution:} {#1}}}}
+\usepackage[usenames,dvipsnames,svgnames,table,hyperref]{xcolor}
+\usepackage{graphicx}
+\usepackage[tbtags]{amsmath}
+\usepackage[hang, small,labelfont=bf,up]{caption} % Custom captions under/above floats in tables or figures
+\usepackage{booktabs} % Horizontal rules in tables
+
+
+\renewcommand*{\theenumi}{\alph{enumi}}
+\renewcommand*\labelenumi{(\theenumi)}
+\renewcommand*{\theenumii}{\roman{enumii}}
+\renewcommand*\labelenumii{\theenumii.}
+
+
+\begin{document}
+\ctitle{3}{SVM and Kernels}{March 2, 2019}
+\author{Tian Ye \\ \small{Collaborators: Derek Chu, Austin Guo}}
+\maketitle
+
+\newpage
+
+\section{Kernels}
+\begin{enumerate}
+\item 
+\solution{
+We will define $k(x,z)$ as $k(x,z) = \phi(x)^T\phi(z)$. Since we are counting the number of unique words in both $x$ and $z$, we will iterate over all the words in the English dictionary and evaluate whether it exists in both $x$ and $z$.
+$k(x, z) = k(z, x)$ is very easy to see because the intersection for $x$ and $z$ is the same as the intersection for $z$ and $x$: ie. it is commutative.
+
+The second condition is $\phi(x)^T\phi(z) = \phi(z)^T\phi(x)$. If $\phi(x)$ is a function that creates a vector with each index representing the entire dictionary of possible words, and an entry is 1 if it is present in the document and 0 if it is not. Therefore the dot product is commutative and tells the union of the two documents of unique words.
+
+Hence this function is a kernel since we can express it as $\phi(x)^T\phi(z)$.
+}
+\vspace{1cm}
+
+\item
+\solution{
+\begin{align}
+&\bigg(1 + \frac{x}{||x||}\cdot\frac{z}{||z||}\bigg)^3 \\
+= &\bigg(1 + \frac{1}{||x||}\cdot\frac{1}{||z||}(x \cdot z)\bigg)^3  \\
+= &\bigg(1 + \frac{1}{||x||}\cdot\frac{1}{||z||}\cdot k(x, z)\bigg)^3 \\
+&\text{Where $f(x) = \frac{1}{||x||}$ and $f(z) = \frac{1}{||z||}$,} \Rightarrow (1 + k_1(x, z))^3 \\
+= &(1 + 2k_1(x, z) + k_1(x, z)^2) (1 + k_1(x,z)) \\
+= &\text{ }1 + 3k_1(x,z) + 3k_1(x, z)^2 + k_1(x,z)^3\\
+= &\text{ }1 + 3k_1(x,z) + 3k_1(x,z) \cdot k_1(x,z) + k_1(x,z) \cdot k_1(x,z) \cdot k_1(x,z) \\
+= &\text{ }1 + 3k_1(x,z) + 3k_2(x,z) \cdot k_1(x,z) + k_2(x,z) \cdot k_1(x,z) \\
+= &\text{ }1 + k_4(x , z) + k_5(x,z) + k_6(x,z) \\
+&\text{If we define $k_7(x,z) = x^0 \cdot z^0 = 1$,} \\
+= &\text{ }k_7(x,z) + k_4(x,z) + k_5(x,z)+k_6(x,z) \\
+= &\text{ }k_8(x,z) + k_9(x,z) \\
+= &\text{ }k_{10}(x,z)
+\end{align}
+Hence, $(1+\tfrac{x}{||x||}\cdot\tfrac{z}{||z||})^3$ is a kernel.
+}
+\newpage
+
+\item
+\solution{
+We know that $ k_\beta(x,z) = (1 + \beta x\cdot z)^3$ for any $\beta > 0$, where $x \cdot z = x_1z_1 + x_2z_2$. From this we yield the following: \\
+\begin{multline}
+(1 + \beta(x_1z_1 + x_2z_2))^3 \\ = (1 + \beta(x_1z_1 + x_2z_2))(1 + \beta(x_1z_1 + x_2z_2))(1 + \beta(x_1z_1 + x_2z_2)) \\
+\end{multline}
+\begin{multline}
+= (2\beta x_1z_1 + \beta^2x_1^2z_1^2 + 2\beta^2 x_1z_1x_2z_2 + 2\beta x_2z_2 + \beta^2x_2^2z_2^2 + 1)\\(1 + \beta(x_1z_1 + x_2z_2)) \\
+\end{multline}
+\begin{multline}
+= \beta^3x_1^3z_1^3 + 3\beta^2x_1^2z_1^2 + 3\beta^3x_1^2z_1^2x_2z_2 + 3\beta x_1z_1+ 3\beta^3x_1z_1x_2^2z_2^2 + \\ 6\beta^2x_1z_1x_2z_2 + \beta^3x_2^3z_2^3 + 3\beta^2x_2^2z_2^2 + 3\beta x_2z_2 + 1 
+\end{multline}
+Therefore,
+\begin{equation}
+\phi_\beta(x) = \begin{bmatrix}
+1 \\
+\sqrt{3\beta}x_1 \\
+\sqrt{3\beta}x_2 \\
+\sqrt{3}\beta x_1^2 \\
+\sqrt{3}\beta x_2^2 \\
+\beta^{\frac{3}{2}}x_1^3 \\
+\beta^{\frac{3}{2}}x_2^3 \\
+\sqrt{3}\beta^{\frac{3}{2}}x_1x_2^2 \\
+\sqrt{3}\beta^{\frac{3}{2}}x_1^2x_2 \\
+\sqrt{6}\beta x_1 x_2\\
+\end{bmatrix}
+\end{equation}
+Since $\beta$ is not a part of $\phi(x)$, $\beta$ essentially performs the role of acting as a weight to each term within $\phi_\beta(x)$. This results in the overall kernel function to be scaled by a certain amount since $\phi(x)$ is $\phi_\beta(x)$ without any $\beta$ terms. 
+}
+\end{enumerate}
+\newpage
+
+\section{SVM}
+\begin{enumerate}
+\item
+\solution{
+$x = (a, e)^T, y=-1,$ min$\frac{1}{2}||\theta||^2$ \\
+$-1 \cdot \theta^T\begin{bmatrix} a \\ e \\ \end{bmatrix} \geq 1 \Rightarrow -\theta_1 a - \theta_2 e \geq 1 \Rightarrow 1 + \theta_1 a + \theta_2 e \geq 0$ \\
+Lagrangian: $\mathcal{L}(\theta, \alpha) = \frac{1}{2}(\theta_1^2 + \theta_2^2) + \alpha(1+\theta_1a+- \theta_2e )$ \\
+Dual problem is maximizing $\alpha$ where $g(\alpha) = \text{min }\theta\text{ } \mathcal{L}(\theta, \alpha)$ \\
+Optimizing $\theta^*$: \\
+\begin{align}
+\frac{\partial \mathcal{L}(\theta, \alpha)}{\partial\theta_1} &= \theta_1 + \alpha_a = 0 \\
+\frac{\partial \mathcal{L}(\theta, \alpha)}{\partial\theta_2} &= \theta_2 + \alpha_e = 0
+\end{align}
+\begin{align}
+\theta_1 &= -\alpha a \\
+\theta_2 &= -\alpha e 
+\end{align}
+Now, $g(\alpha) = \text{min }\theta \text{ } \mathcal{L}(\theta, \alpha) =  \mathcal{L}(\theta^*, \alpha)$
+\begin{align}
+= &\frac{1}{2}(\alpha^2a^2 + \alpha^2e^2)-\alpha(1-\alpha a^2 - \alpha e^2) \\
+= &\frac{1}{2}\alpha^2a^2+\frac{1}{2}\alpha^2e^2 - \alpha + \alpha^2a^2 + \alpha^2e^2 \\
+= &\frac{3}{2}\alpha^2a^2 + \frac{3}{2}\alpha^2e^2-\alpha
+\end{align}
+Maximizing $g$:
+\begin{align}
+\frac{\partial g(\alpha)}{\partial \alpha} &= 2 \alpha a^2 + 2\alpha e^2 + 1 = 0 \\
+&\Rightarrow \alpha(a^2 + e^2) = 1 \\
+\alpha^* &= \frac{1}{(\alpha^2 + e^2)}
+\end{align}
+Hence:
+\begin{equation}
+\theta^* =
+\begin{bmatrix}
+-\frac{a}{(\alpha^2 + e^2)} \\
+-\frac{e}{(\alpha^2 + e^2)} \\
+\end{bmatrix}
+\end{equation}
+}
+\newpage
+
+\item
+\solution{
+$x_1 = (1, 1)^T$, $x_2 = (1, 0)^T$, $y_1 = 1$, $y_2 = -1$, min $\theta$ $\frac{1}{2}||\theta||^2$ \\
+$\Rightarrow 1\cdot \theta^T \begin{bmatrix} 1 \\ 1 \end{bmatrix} \geq 1$ and $-1\cdot \theta^T \begin{bmatrix} 1 \\ 0 \end{bmatrix} \geq 1$ \\
+$\Rightarrow \theta_1 + \theta_2 \geq 1$ and $-\theta_1 \geq 1$ \\
+$\Rightarrow 1 - \theta_1 - \theta_2 \geq 0$ and $1 + \theta_1 \geq 0$ \\
+Lagrangian: $\mathcal{L}(\theta, \alpha_1, \alpha_2) = \frac{1}{2}(\theta_1^2 + \theta_2^2) + \alpha_1(1-\theta_1 - \theta_2) + \alpha_2(1 + \theta_1)$ \\
+Dual problem is maximizing $\alpha_1 \alpha_2$ where $g(\alpha_1, \alpha_2) = \text{min }\theta\text{ } \mathcal{L}(\theta, \alpha_1, \alpha_2)$ \\
+Optimizing $\theta^*$: \\
+\begin{align}
+\frac{\partial \mathcal{L}(\theta, \alpha_1, \alpha_2)}{\partial\theta_1} &= \theta_1 - \alpha_1 + \alpha_2 = 0 &\Rightarrow \theta_1 &= \alpha_1 - \alpha_2 \\
+\frac{\partial \mathcal{L}(\theta, \alpha_1, \alpha_2)}{\partial\theta_2} &= \theta_2 - \alpha_1 = 0 &\Rightarrow \theta_2 &= \alpha_1
+\end{align}
+Now we have $g(\alpha_1, \alpha_2) = \text{min }\theta\text{ } \mathcal{L}(\theta, \alpha_1, \alpha_2) = \mathcal{L}(\theta^*, \alpha_1, \alpha_2)$ \\
+Simplifying:
+\begin{multline}
+\mathcal{L}(\theta^*, \alpha_1, \alpha_2) \\ = \frac{1}{2}(\alpha_1^2 - 2\alpha_1\alpha_2 + \alpha_2^2+\alpha_1^2)+\alpha_1(1-\alpha_1+\alpha_2-\alpha_1)+\alpha_2(1+\alpha_1-\alpha_2)
+\end{multline}
+\begin{equation}
+= \frac{1}{2}(2\alpha_1^2-2\alpha_1\alpha_2+2\alpha_2^2)+\alpha_1(1-2\alpha_1+\alpha_2)+\alpha_2(1+\alpha_1-\alpha_2)
+\end{equation}
+Maximizing $g$:
+\begin{align}
+\frac{\partial g(\alpha_1, \alpha_2)}{\partial \alpha_1} &= \frac{1}{2}(4\alpha_1-2\alpha_2)+1-4\alpha_1+\alpha_2+\alpha_2 \\
+\Rightarrow 0 &= 2\alpha_1 - \alpha_2 + 1 -4\alpha_1+\alpha_2+\alpha_2 \\
+0 &= -2\alpha_1 + \alpha_2 + 1
+\end{align}
+\begin{align}
+\frac{\partial g(\alpha_1, \alpha_2)}{\partial \alpha_2} &= \frac{1}{2}(-2\alpha_1+2\alpha_2)+\alpha_1+1+\alpha_1-2\alpha_2 \\
+\Rightarrow 0 &= -\alpha_1+\alpha_2+\alpha_1+1+\alpha_1-2\alpha_2\\
+0 &= -\alpha_2+\alpha_1+1
+\end{align}
+Combining (35) and (38):
+\begin{align}
+-\alpha_1+2 = 0 &\Rightarrow \alpha_1 = 2 \\
+-\alpha_2 + 3 = 0 &\Rightarrow \alpha_2 = 3
+\end{align}
+Therefore $\theta^* = \begin{bmatrix} -1 \\ 2 \end{bmatrix}$ and the margin $\gamma = \frac{1}{\sqrt{(-1^2)+(2)^2}} = \frac{\sqrt{5}}{5}$
+}
+\newpage
+
+\item
+\solution{
+$x_1 = (1, 1)^T$, $x_2 = (1, 0 )^T$, $y_1 = 1$, $y_2 = -1$, min $\theta$ $\frac{1}{2}||\theta||^2$, $y_n(\theta^Tx_n + b) \geq 1$ \\
+$\Rightarrow 1\cdot \theta^T \begin{bmatrix} 1 \\ 1 \end{bmatrix} + b\geq 1$ and $-1\cdot \theta^T \begin{bmatrix} 1 \\ 0 \end{bmatrix} - b\geq 1$ \\
+$\Rightarrow \theta_1 + \theta_2 + b\geq 1$ and $-\theta_1 - b\geq 1$ \\
+$\Rightarrow 1 - \theta_1 - \theta_2 - b \geq 0$ and $1 + \theta_1 + b\geq 0$ \\
+Lagrangian: $\mathcal{L}(\theta,  \alpha_1, \alpha_2) = \frac{1}{2}(\theta_1^2 + \theta_2^2) + \alpha_1(1-\theta_1 - \theta_2 -b) + \alpha_2(1 + \theta_1 + b)$ \\
+Dual problem is maximizing $\alpha_1 \alpha_2$ where $g(\alpha_1, \alpha_2) = \text{min }\theta\text{ } \mathcal{L}(\theta, \alpha_1, \alpha_2)$ \\
+Optimizing $\theta^*$: \\
+\begin{align}
+\frac{\partial \mathcal{L}(\theta, \alpha_1, \alpha_2)}{\partial\theta_1} &= \theta_1 - \alpha_1 + \alpha_2 = 0 &\Rightarrow \theta_1 &= \alpha_1 - \alpha_2 \\
+\frac{\partial \mathcal{L}(\theta, \alpha_1, \alpha_2)}{\partial\theta_2} &= \theta_2 - \alpha_1 = 0 &\Rightarrow \theta_2 &= \alpha_1
+\end{align}
+Now we have $g(\alpha_1, \alpha_2) = \text{min }\theta\text{ } \mathcal{L}(\theta, \alpha_1, \alpha_2) = \mathcal{L}(\theta^*, \alpha_1, \alpha_2)$ \\
+Simplifying:
+\begin{multline}
+\mathcal{L}(\theta^*, \alpha_1, \alpha_2) \\ = \frac{1}{2}(\alpha_1^2 - 2\alpha_1\alpha_2 + \alpha_2^2+\alpha_1^2)+\alpha_1(1-\alpha_1+\alpha_2-\alpha_1-b)+\alpha_2(1+\alpha_1-\alpha_2+b)
+\end{multline}
+\begin{equation}
+= \frac{1}{2}(2\alpha_1^2-2\alpha_1\alpha_2+2\alpha_2^2)+\alpha_1(1-2\alpha_1+\alpha_2-b)+\alpha_2(1+\alpha_1-\alpha_2+b)
+\end{equation}
+Maximizing $g$:
+\begin{align}
+\frac{\partial g(\alpha_1, \alpha_2)}{\partial \alpha_1} &= \frac{1}{2}(4\alpha_1-2\alpha_2)+1-4\alpha_1+\alpha_2+\alpha_2 - b \\
+\Rightarrow 0 &= -2\alpha_1 + \alpha_2 + 1 - b \\
+\Rightarrow \alpha_1 &= \frac{\alpha_2+1-b}{2}
+\end{align}
+\begin{align}
+\frac{\partial g(\alpha_1, \alpha_2)}{\partial \alpha_2} &= \frac{1}{2}(-2\alpha_1+2\alpha_2)+\alpha_1+1+\alpha_1-2\alpha_2 + b\\
+\Rightarrow 0 &= -2\alpha_2+\alpha_1+1+b \\
+\Rightarrow \alpha_2 &= \alpha_1 + 1 + b \\
+\nonumber \\
+\frac{\partial g(\alpha_1, \alpha_2)}{\partial b} &= -\alpha_1 + \alpha_2 \\
+\Rightarrow \alpha_2 &= \alpha_1
+\end{align}
+Combining (47) (50) and (52), we yield:
+\begin{align}
+\alpha_1 = 2, \alpha_2 = 2, b = -1
+\end{align}
+Therefore,
+\begin{equation}
+(\theta^*, b^*) = (\begin{bmatrix} 0 \\ 2 \end{bmatrix}, - 1)
+\end{equation}
+\begin{equation}
+\gamma = \frac{1}{\sqrt{0^2 + 2^2}} = \frac{1}{2}
+\end{equation}
+}
+\newpage
+\end{enumerate}
+
+\section{Twitter Analysis using SVMs}
+\subsection{Feature Extraction}
+\begin{enumerate}
+\item
+\solution{
+Completed.
+}
+\item
+\solution{
+Completed.
+}
+\item
+\solution{
+Completed.
+}
+\end{enumerate}
+
+\subsection{Hyperparameter Selection for Linear-Kernel SVM}
+\begin{enumerate}
+\item
+\solution{
+Completed.
+}
+\item
+\solution{
+We maintain class proportions across folds to have a more even distribution in responses. This prevents data from being skewed as if we did not maintain proportions, we would have one fold that is more skewed than the rest, resulting in inaccurate training and test data sets. This in turn would cause our classifier to be inaccurate as different proportions will naturally result in different predictions. Hence, the proportions are kept constant to help ensure that the classifier can be trained and tested on a representative set of data.
+}
+\item
+\solution{
+Completed.
+}
+\item
+\solution{
+\begin{table}[!htbp]
+\centering
+\scalebox{0.8}{
+\begin{tabular}{lcccccc}
+\toprule
+\cmidrule{1-7}
+C & Accuracy & F1-Score & AUROC & Precision & Sensitivity & Specificity \\
+\midrule
+$10^{-3}$ & 0.7089 & 0.8297 & 0.5000 & 0.7089 & 1.0000 & 0.0000 \\
+$10^{-2}$ & 0.7107 & 0.8306 & 0.5031 & 0.7102 & 1.0000 & 0.0063 \\
+$10^{-1}$ & 0.8060 & 0.8755 & 0.7188 & 0.8357 & 0.9294 & 0.5081 \\
+$10$          & 0.8146 & 0.8749 & 0.7531 & 0.8562 & 0.9017 & 0.6045 \\
+$10^{1}$  & 0.8182 & 0.8766 & 0.7592 & 0.8595 & 0.9017 & 0.6167 \\
+$10^{2}$  & 0.8182 & 0.8766 & 0.7592 & 0.8595 & 0.9017 & 0.6167 \\
+Best C       & $10^{1}/10^{2}$ & $10^{1}/10^{2}$& $10^{1}/10^{2}$& $10^{1}/10^{2}$& $10^{-3}$& $10^{1}/10^{2}$\\
+\bottomrule
+\end{tabular}}
+\end{table} \\
+As a general trend, the 5-fold CV's performance increases as C increases in value, as all categories with the exception of sensitivity increase as C increases in size. However, sensitivity's performance decreases as C increases due to the fact that C trades off correct classification of training examples to maximize the margin. Hence, the greater C results in more false negatives, reducing the performance of sensitivity while increasing the performance of the remaining categories.
+}
+\end{enumerate}
+\newpage
+
+\subsection{Hyperparameter Selection for an RBF-kernel SVM}
+\begin{enumerate}
+\item
+\solution{
+Gamma serves as a marker of the degree of importance that we assign to a given training point. Since the SVM searches for the maximal margin between two different classes, gamma essentially serves as the inverse of hte radius of influence of samples selected by the model as support vectors. Hence, as gamma increases towards infinity, the radius only includes the support vector, resulting in overfitting. As gamma goes to 0, the model becomes too constrained is therefore unable to capture the complexity of the data. A small gamma however allows for good generalization behavior as it appropriately weighs the impact of a given training point. As a result, the gamma in an RBF-kernel SVM allows for good generalization of the problem; however, it does not achieve nearly as good a performance metric as the linear SVM for the training set. 
+}
+
+\item
+\solution{
+According to scikit-learn.org, it is said that a grid from $10^-3$ to $10^3$ is usually sufficient. Given that our C has already been tested in that range, I used this grid to test for optimal values of C and $\gamma$
+}
+
+\item
+\solution{
+\begin{table}[!htbp]
+\centering
+\scalebox{0.8}{
+\begin{tabular}{lccc}
+\toprule
+\cmidrule{1-4}
+Metric & Score & C & $\gamma$ \\
+\midrule
+Accuracy & 0.8165 & 100.0 & 0.01 \\
+F1-Score & 0.8763 & 100.0 & 0.01 \\
+AUROC  & 0.7561 & 1000.0 & 0.001\\
+Precision & 0.8586 & 100.0 & 0.01 \\
+Sensitivity & 1.0000 & 0.001 & 0.001 \\
+Specificity & 0.6106 & 1000.0 & 0.001 \\
+\bottomrule
+\end{tabular}}
+\end{table} \\
+In general, the performance is better with high values of C and low values of gamma: with every metric with the exception of sensitivity, C is either 100.0 or 1000.0 and $\gamma$ is either 0.01 or 0.001. Sensitivity on the other hand perfers small values of C of 0.001. It can also be seen here that the RBF-kernel SVM has worse performance on the training set than the linear SVM.
+}
+\end{enumerate}
+\newpage
+
+\subsection{Test Set Performance}
+\begin{enumerate}
+\item
+\solution{
+For the linear SVM, I chose C = 100.0 as 5 out of the 6 metrics had the best performance with a C value of 100.0. For the RBF-kernel SVM, I chose C = 100.0 and $\gamma = 0.01$ as 3 of the 6 metrics had the best performance with these hyperparameters, with two other metrics having their optimal hyperparameters with values similar to those as well.
+}
+
+\item
+\solution{
+Completed.
+}
+
+\item
+\solution{
+\begin{table}[!htbp]
+\centering
+\scalebox{0.8}{
+\begin{tabular}{lll}
+\toprule
+\cmidrule{1-3}
+Metric & Linear SVM Performance & RBF-kernel SVM Performance\\
+\midrule
+Accuracy & 0.7429 & 0.7571\\
+F1-Score & 0.4375 & 0.4516\\
+AUROC  & 0.6259 & 0.6361\\
+Precision & 0.6364 & 0.7000\\
+Sensitivity & 0.3333 & 0.3333\\
+Specificity & 0.9184 & 0.9388\\
+\bottomrule
+\end{tabular}}
+\end{table} \\
+It can be seen from this table that RBF-kernel SVM tends to perform overall better than the linear SVM; this can be chalked up to the fact that RBF-kernel SVM has an additional hyperparamterthat permits the definition of the influence of a single hyperparameter, which results in a classifier that is better at generalization. Hence, the RBF-kernel SVM has better performance on the test set than the linear SVM despite its worse performance on the training set.
+}
+\end{enumerate}
+\end{document}
